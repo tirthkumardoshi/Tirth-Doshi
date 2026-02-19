@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padmavati Trading | Soft Luxury 3D</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --soft-sage: #e3e7d9;
+            --champagne: #f7efe2;
+            --deep-sage: #7d8471;
+            --glass: rgba(255, 255, 255, 0.45);
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--soft-sage);
+            margin: 0; overflow-x: hidden;
+            color: var(--deep-sage);
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .product-card:hover {
+            transform: scale(1.03) translateY(-10px) rotateY(5deg);
+        }
+
+        .img-full-view {
+            width: 100%; height: 350px;
+            background: white;
+            border-radius: 30px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; padding: 20px;
+        }
+
+        .img-full-view img {
+            max-width: 100%; max-height: 100%;
+            object-fit: contain; /* Shows full bag details */
+        }
+
+        .admin-modal {
+            transform: rotateX(90deg) scale(0.8);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .admin-modal.active {
+            transform: rotateX(0deg) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-beauty {
+            background: linear-gradient(135deg, #7d8471, #a3ac94);
+            color: white;
+            box-shadow: 0 10px 20px rgba(125, 132, 113, 0.3);
+            transition: 0.3s;
+        }
+
+        .btn-beauty:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(125, 132, 113, 0.4); }
+
+        .section-hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <nav class="fixed w-full z-50 py-10 px-12 flex justify-between items-center">
+        <div class="flex items-center">
+              <img src="https://i.postimg.cc/3RLtNPTs/Gemini-Generated-Image-h5c3sch5c3sch5c3.png"
+              alt="TD Logo"
+              class="w-28 h-28 rounded-full object-cover transition-all duration-500 hover:scale-110 shadow-[0_20px_50px_rgba(0,0,0,0.7)]">
+          </div>
+        <div class="flex space-x-8 items-center">
+            <button onclick="navTo('home')" class="hover:text-black font-semibold">SHOP</button>
+            <button onclick="navTo('register')" class="hover:text-black font-semibold">JOIN</button>
+            <button onclick="toggleAdmin(true)" class="btn-beauty px-8 py-3 rounded-full">ADMIN PANEL</button>
+        </div>
+    </nav>
+
+    <main id="home" class="pt-40 px-10 max-w-7xl mx-auto">
+        <div class="text-center mb-24">
+            <h1 class="text-7xl font-serif text-gray-800 mb-6 italic">Padmavati Trading</h1>
+            <p class="text-lg tracking-widest uppercase opacity-70">Premium Paper & Plastic Bag Manufacturing</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mb-32">
+            <div onclick="filterShop('PAPER')" class="glass-card p-20 text-center cursor-pointer group hover:bg-white/60">
+                <h2 class="text-5xl font-serif group-hover:tracking-widest transition-all">PAPER BAGS</h2>
+                <div class="h-1 w-20 bg-gray-400 mx-auto mt-4"></div>
+            </div>
+            <div onclick="filterShop('PLASTIC')" class="glass-card p-20 text-center cursor-pointer group hover:bg-white/60">
+                <h2 class="text-5xl font-serif group-hover:tracking-widest transition-all">PLASTIC BAGS</h2>
+                <div class="h-1 w-20 bg-gray-400 mx-auto mt-4"></div>
+            </div>
+        </div>
+
+        <div id="shop-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 pb-40">
+            </div>
+    </main>
+
+    <section id="register" class="section-hidden pt-48 flex justify-center">
+        <div class="glass-card p-12 w-full max-w-lg">
+            <h2 class="text-4xl font-serif mb-8 text-center">New Registration</h2>
+            <form onsubmit="handleReg(event)" class="space-y-6">
+                <input type="text" id="regName" placeholder="Full Name" class="w-full p-4 rounded-3xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-sage-400 outline-none" required>
+                <input type="email" id="regEmail" placeholder="Email" class="w-full p-4 rounded-3xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-sage-400 outline-none" required>
+                <button class="w-full btn-beauty py-4 rounded-3xl font-bold text-lg">CREATE ACCOUNT</button>
+            </form>
+        </div>
+    </section>
+
+    <div id="admin-modal" class="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm">
+        <div class="glass-card p-12 w-full max-w-md text-center">
+            <h2 class="text-3xl font-serif mb-6">Staff Authentication</h2>
+            <input type="text" id="admU" placeholder="Username" class="w-full p-4 mb-4 rounded-2xl border-none outline-none ring-1 ring-gray-200">
+            <input type="password" id="admP" placeholder="Password" class="w-full p-4 mb-6 rounded-2xl border-none outline-none ring-1 ring-gray-200">
+            <button onclick="checkAdmin()" class="w-full btn-beauty py-4 rounded-2xl font-bold mb-4">LOGIN</button>
+            <button onclick="toggleAdmin(false)" class="text-gray-500 underline text-sm">Return to Site</button>
+            <p id="err" class="text-red-400 mt-2 hidden">Invalid Access</p>
+        </div>
+    </div>
+
+    <section id="dashboard" class="section-hidden pt-32 px-10 pb-40">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-12">
+                <h2 class="text-5xl font-serif">Management Portal</h2>
+                <button onclick="navTo('home')" class="bg-red-100 text-red-500 px-8 py-2 rounded-full font-bold">LOGOUT</button>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-12">
+                <div class="glass-card p-8 h-fit">
+                    <h3 class="text-2xl font-bold mb-6">Add Item</h3>
+                    <form onsubmit="saveProduct(event)" class="space-y-4">
+                        <select id="pType" class="w-full p-3 rounded-xl border">
+                            <option value="PAPER">Paper Bag</option>
+                            <option value="PLASTIC">Plastic Bag</option>
+                        </select>
+                        <input type="text" id="pName" placeholder="Product Title" class="w-full p-3 rounded-xl border" required>
+                        
+                        <div class="bg-white/50 p-4 rounded-2xl space-y-4">
+                            <label class="text-xs font-bold text-gray-400 uppercase">Image Source</label>
+                            <input type="file" id="pFile" accept="image/*" onchange="imgPreview(event)" class="text-xs">
+                            <input type="text" id="pLink" placeholder="Or Paste URL" oninput="imgPreview(event)" class="w-full p-3 text-sm rounded-xl border">
+                            <div class="h-48 bg-white rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden">
+                                <img id="preImg" class="max-h-full hidden">
+                                <span id="preText" class="text-gray-300">Preview</span>
+                            </div>
+                        </div>
+                        <button class="w-full btn-beauty py-4 rounded-2xl font-bold">UPDATE INVENTORY</button>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-2 space-y-12">
+                    <div class="glass-card p-8">
+                        <h3 class="text-2xl font-bold mb-6">Registered Clients</h3>
+                        <div id="uData" class="space-y-3"></div>
+                    </div>
+                    <div class="glass-card p-8">
+                        <h3 class="text-2xl font-bold mb-6">Inventory Control</h3>
+                        <div id="pData" class="grid grid-cols-2 gap-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // --- 1. THREE.JS 3D SOFT BACKGROUND ---
+        let scene, camera, renderer, plane;
+        function init3D() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const geometry = new THREE.PlaneGeometry(50, 30, 50, 50);
+            const material = new THREE.MeshPhongMaterial({ color: 0xe3e7d9, side: THREE.DoubleSide, flatShading: false, shininess: 100 });
+            plane = new THREE.Mesh(geometry, material);
+            plane.rotation.x = -0.5;
+            scene.add(plane);
+
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 5, 5);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+            camera.position.z = 10;
+            animate();
+        }
+
+        function animate() {
+            const time = Date.now() * 0.0005;
+            const pos = plane.geometry.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const y = pos.getY(i);
+                const z = Math.sin(x * 0.3 + time) * 1.5 + Math.cos(y * 0.3 + time) * 1.5;
+                pos.setZ(i, z);
+            }
+            pos.needsUpdate = true;
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        // --- 2. ADMIN & NAVIGATION ---
+        let products = JSON.parse(localStorage.getItem('padma_p')) || [];
+        let clients = JSON.parse(localStorage.getItem('padma_c')) || [];
+
+        function navTo(id) {
+            document.querySelectorAll('main, section').forEach(s => s.classList.add('section-hidden'));
+            document.getElementById(id).classList.remove('section-hidden');
+            if(id === 'home') renderShop();
+            if(id === 'dashboard') renderAdmin();
+            gsap.from(`#${id}`, { y: 100, opacity: 0, duration: 1, ease: "expo.out" });
+        }
+
+        function toggleAdmin(show) {
+            const modal = document.getElementById('admin-modal');
+            if(show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        }
+
+        function checkAdmin() {
+            const u = document.getElementById('admU').value;
+            const p = document.getElementById('admP').value;
+            if(u === "tirth" && p === "doshi2007") {
+                toggleAdmin(false);
+                navTo('dashboard');
+            } else {
+                document.getElementById('err').classList.remove('hidden');
+            }
+        }
+
+        // --- 3. PRODUCT LOGIC ---
+        let currentImg = "";
+        function imgPreview(e) {
+            const img = document.getElementById('preImg');
+            const txt = document.getElementById('preText');
+            const link = document.getElementById('pLink').value;
+
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    currentImg = ev.target.result;
+                    img.src = currentImg; img.classList.remove('hidden'); txt.classList.add('hidden');
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            } else if (link) {
+                currentImg = link;
+                img.src = link; img.classList.remove('hidden'); txt.classList.add('hidden');
+            }
+        }
+
+        function saveProduct(e) {
+            e.preventDefault();
+            products.push({
+                id: Date.now(),
+                name: document.getElementById('pName').value,
+                type: document.getElementById('pType').value,
+                img: currentImg || 'https://via.placeholder.com/400'
+            });
+            localStorage.setItem('padma_p', JSON.stringify(products));
+            renderAdmin();
+            alert("Updated!");
+            e.target.reset();
+            document.getElementById('preImg').classList.add('hidden');
+        }
+
+        function delProd(id) {
+            products = products.filter(p => p.id !== id);
+            localStorage.setItem('padma_p', JSON.stringify(products));
+            renderAdmin();
+        }
+
+        function handleReg(e) {
+            e.preventDefault();
+            clients.push({ name: document.getElementById('regName').value, email: document.getElementById('regEmail').value });
+            localStorage.setItem('padma_c', JSON.stringify(clients));
+            alert("Registration Complete!");
+            navTo('home');
+        }
+
+        // --- 4. RENDER FUNCTIONS ---
+        function renderShop(filter = null) {
+            const grid = document.getElementById('shop-grid');
+            grid.innerHTML = '';
+            const list = filter ? products.filter(p => p.type === filter) : products;
+            
+            list.forEach(p => {
+                grid.innerHTML += `
+                    <div class="glass-card product-card p-8 flex flex-col items-center">
+                        <div class="img-full-view mb-6">
+                            <img src="${p.img}" alt="${p.name}">
+                        </div>
+                        <span class="text-xs font-bold tracking-[5px] text-gray-400 mb-2">${p.type}</span>
+                        <h4 class="text-3xl font-serif text-gray-700">${p.name}</h4>
+                    </div>
+                `;
+            });
+        }
+
+        function filterShop(type) {
+            renderShop(type);
+            window.scrollTo({ top: 900, behavior: 'smooth' });
+        }
+
+        function renderAdmin() {
+            document.getElementById('uData').innerHTML = clients.map(c => `
+                <div class="p-4 bg-white/50 rounded-2xl flex justify-between">
+                    <b>${c.name}</b> <span class="opacity-50">${c.email}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('pData').innerHTML = products.map(p => `
+                <div class="bg-white p-3 rounded-xl flex justify-between items-center">
+                    <span class="truncate w-32 font-bold">${p.name}</span>
+                    <button onclick="delProd(${p.id})" class="text-red-400 text-sm">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Init
+        init3D();
+        renderShop();
+    </script>
+</body>
+</html>
